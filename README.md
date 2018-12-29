@@ -1,68 +1,37 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## IMPORTANT
 
-## Available Scripts
+This was thrown together in just a few days and I have no intention 
+of cleaning it up and making it more general purpose because it 
+already does what I need. But if you find it useful as a base (it 
+is pretty simple setup after all) - go nuts.
 
-In the project directory, you can run:
+## What it does
 
-### `npm start`
+All I wanted to do was find interesting posts from people where 
+I live.
+But instagram's laughable search functionality makes that impossible.
+And their [APIs](https://www.instagram.com/developer/) ~~suck~~ are 
+very restrictive "in the interest of privacy".
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+So I wrote this little scraper that retrieves infos about hashtags 
+being used in the city where I currently live at a slow enough rate 
+that the IG servers don't seem to care (otherwise - `429`).
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+And it's already been great seeing what people around here who use 
+hashtags like e.g. `#franzkafka` produce. 
 
-### `npm test`
+## How it works
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+- Puppeteer scrapes the info at a really low speed (initial scraping 
+will take **~2 hours**)
+- The resulting data is stored in memory
+- The data is also mirrored in a `lowdb` file db so that subsequent 
+startups only take seconds. (If db.json isn't removed between startups and the timestamp to 
+"scrape until" in `server/index.js` is set to `Date.now()`)
+- The backend serves this data through a GraphQL API
+- Frontend... very simple, nothing to say. (Although I want to note 
+that this is first time I found a good use case for `create-react-app`.
+So far, I've only used it for tests. Usually, I either set up things from 
+scratch or use Next.js for anything that's supposed to be usable. But from 
+scratch would've taken too long and Next.js... SSR/TS and GraphQL... no
+time for that either.)
