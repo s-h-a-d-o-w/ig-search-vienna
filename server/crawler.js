@@ -8,7 +8,7 @@ const closeDialog = async (page, closeButton) => {
 
 	// Wait for dialog to be gone
 	let hndDialog = await page.$('body > div:not([class]) > div');
-	retries = 10;
+	let retries = 10;
 	while(hndDialog !== null && retries > 0) {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 		hndDialog = await page.$('body > div > div[role="dialog"]');
@@ -28,91 +28,16 @@ const waitUntilLoaded = async (hndDialog) => {
 		spinner = await hndDialog.$('svg');
 		retries--;
 	}
-}
-
-const scrollToTarget = async (page, until) => {
-	// Scroll down location page X times.
-	// page.evaluate executes the function in the page's context, hence e.g. window exists.
-	// See: https://github.com/GoogleChrome/puppeteer/issues/305#issuecomment-385145048
-	return await page.evaluate((until) => {
-		return new Promise((resolve, reject) => {
-			const MAX_SCROLLS = 100;
-			let numScrolls = 0;
-			let scroll = () => setTimeout(async () => {
-				let distance = 500 + Math.random() * 1000;
-				if(numScrolls < MAX_SCROLLS) {
-					// Oldest post we need already on the page?
-					console.log('Check timestamp of oldest post on page');
-					let links = document.querySelectorAll('a[href^="/p/"]');
-					links[links.length - 1].click();
-
-					// Sometimes, the dialog simply won't open
-					// If it doesn't, keep scrolling
-					let dialog = document.querySelector('body > div:not([class]) > div');
-					if(dialog !== null) {
-						// Wait for loading spinner to be removed
-						let spinner = dialog.querySelector('svg');
-						let retries = 10;
-						while(spinner !== null && retries > 0) {
-							await new Promise((resolve) => setTimeout(resolve, 1000));
-							spinner = dialog.querySelector('svg');
-							retries--;
-						}
-
-						let times = document.querySelectorAll('time');
-						let oldest = new Date(times[times.length - 1].getAttribute('datetime')).valueOf();
-
-						if(oldest <= until) {
-							resolve();
-							return;
-						}
-
-						let closeButton = dialog.querySelector(':scope > button');
-						closeButton.click();
-					}
-
-					// No, keep scrolling
-					window.scrollBy(0, distance);
-					numScrolls++;
-					console.log(`Scrolling by ${distance}...`);
-					scroll();
-				}
-				else {
-					reject(`Target time is too far in the past, ${MAX_SCROLLS} scrolls weren't enough!`);
-				}
-			}, 500 + Math.random() * 500);
-			scroll();
-		})
-	}, until);
 };
 
 const simulateUserHesitation = async () => {
-	// WORKS
-	// await new Promise((resolve) => setTimeout(resolve, 2000 + Math.random() * 6000));
 	await new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 3000));
 };
 
-const transformToSchema = (location, posts) => {
-	// let arrHashtags = [];
-	//
-	// Object.keys(hashtags).forEach(key => {
-	// 	arrHashtags.push({
-	// 		name: key,
-	// 		posts: hashtags[key].posts,
-	// 	});
-	// });
-
-	return {
-		location,
-		posts,
-	};
-};
-
 /**
- *
  * @param igLocation
  * @param until Default: 10 minutes ago.
- * @returns {Promise<{location, hashtags, posts}>}
+ * @returns {Promise<{location, posts}>}
  */
 const crawlIG = async(igLocation, until = Date.now() - 10 * 60 * 1000) => {
 	const posts = [];
@@ -142,13 +67,6 @@ const crawlIG = async(igLocation, until = Date.now() - 10 * 60 * 1000) => {
 
 	// Forward page console output to Node.js
 	page.on('console', consoleObj => console.log(consoleObj.text()));
-
-	// try {
-	// 	await scrollToTarget(page, until);
-	// }
-	// catch(err) {
-	// 	console.log(err);
-	// }
 
 	// Keep track of pending requests
 	const requests = [];
@@ -210,7 +128,7 @@ const crawlIG = async(igLocation, until = Date.now() - 10 * 60 * 1000) => {
 			// We've reached the oldest post we want
 			if(createdOn <= until) {
 				console.log(`Finished by reaching postId ${postId}, created on ${new Date(createdOn)}`);
-				return transformToSchema(location, posts);
+				return {location, posts};
 			}
 
 			// ----------------------------------------------------
@@ -294,19 +212,7 @@ const crawlIG = async(igLocation, until = Date.now() - 10 * 60 * 1000) => {
 
 	await browser.close();
 
-	return transformToSchema(location, posts);
+	return {location, posts};
 };
-
-// crawlIG(
-// 	'https://www.instagram.com/explore/locations/63134088/vienna-austria/',
-// 	new Date('2017-01-01').valueOf()
-// )
-// .then(({hashtags, location, posts}) => {
-// 	console.log('------------------------------');
-// 	console.log(hashtags);
-// 	console.log(location);
-// 	console.log(posts);
-// 	process.exit();
-// });
 
 module.exports = {crawlIG};

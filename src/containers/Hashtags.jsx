@@ -1,12 +1,10 @@
 import * as React from 'react';
-import gql from "graphql-tag";
-import { Query } from "react-apollo";
 import memo from 'memoize-one';
 import debounce from 'lodash/debounce';
+import {query} from '../lib/graphql';
 
-const DEBOUNCE = 100;
-
-const HASHTAGS = gql`
+const DEBOUNCE = 200;
+const HASHTAGS = `
 {
   locations {
     lastCrawled
@@ -20,7 +18,7 @@ const HASHTAGS = gql`
 }
 `;
 
-export default class extends React.Component {
+class Hashtags extends React.Component {
 	state = {
 		filter: '',
 		renderFilter: '',
@@ -35,12 +33,11 @@ export default class extends React.Component {
 		this.changeRenderFilter.cancel();
 		this.changeRenderFilter(e.target.value);
 	};
-
 	changeRenderFilter = debounce((filter) => {
 		this.setState({
 			renderFilter: filter
 		});
-	}, 200);
+	}, DEBOUNCE);
 
 	changeThreshold = (e) => {
 		if(e.target.value.match(/^[0-9]*$/) !== null) {
@@ -50,9 +47,14 @@ export default class extends React.Component {
 		}
 	};
 
+	componentDidMount() {
+		query(HASHTAGS)
+		.then(response => response.json())
+		.then(result => this.setState({data: result.data}))
+		.catch(error => this.setState({error}));
+	}
+
 	renderList = memo((data, threshold, filter) => {
-		console.log('processing...');
-		console.log(data);
 		let locationList = [];
 
 		if(data.locations.length === 0)
@@ -80,37 +82,24 @@ export default class extends React.Component {
 
 		return locationList;
 	});
-	// , (a, b) => {
-	// 	console.log('is reference equal?');
-	// 	console.log(a[0] === b[0]);
-	// 	return a[1] === b[1] && a[2] === b[2]
-	// });
 
 	render() {
-		//this.renderList.cancel();
-		const {threshold, filter, renderFilter} = this.state;
-		// console.log('showThumbsFor', showThumbsFor);
+		const {data, error, threshold, filter, renderFilter} = this.state;
 		return (
 			<aside>
 				Min posts: <input type="text" onChange={this.changeThreshold} value={threshold} size="3" />
 				<br />
 				Text filter: <input type="text" onChange={this.changeFilter} value={filter} size="8" />
 				<br />
-				<Query query={HASHTAGS}>
-					{({ loading, error, data }) => {
-						if (loading) return "Loading...";
-						if (error) return `Error! ${error.message}`;
-
-						// Since Apollo creates a new data object on EVERY render but
-						// we need this to be fast, we need to cache the data ourselves.
-						if(!this.hasOwnProperty('cachedData')) {
-							this.cachedData = Object.assign({}, data);
-						}
-
-						return this.renderList(this.cachedData, threshold, renderFilter);
-					}}
-				</Query>
+				{error
+					? error
+					: data
+						? this.renderList(data, threshold, renderFilter)
+						: "Loading..."
+				}
 			</aside>
 		)
 	}
 }
+
+export default Hashtags;

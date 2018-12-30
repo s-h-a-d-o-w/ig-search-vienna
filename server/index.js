@@ -151,35 +151,3 @@ Promise.all(crawlers).then((results) => {
 		console.log(`🚀  Server ready.`);
 	});
 });
-
-// const crawlOrNot = async() => {
-// 	if(locations.length === 0) {
-// 		return crawlIG(
-// 			'https://www.instagram.com/explore/locations/63134088/vienna-austria/',
-// 			new Date('2017-01-01').valueOf()
-// 		)
-// 		.then((result) => {
-// 			locations.push(result.location);
-// 			hashtags = result.hashtags;
-// 			posts = result.posts;
-//
-// 			db.set('locations', locations).write();
-// 			db.set('hashtags', hashtags).write();
-// 			db.set('posts', posts).write();
-// 		})
-// 	}
-//
-// 	return Promise.resolve();
-// };
-//
-// crawlOrNot()
-// .then(() => {
-// 	// In the most basic sense, the ApolloServer can be started
-// 	// by passing type definitions (typeDefs) and the resolvers
-// 	// responsible for fetching the data for those types.
-// 	const server = new ApolloServer({ typeDefs, resolvers });
-//
-// 	server.listen().then(({ url }) => {
-// 		console.log(`🚀  Server ready at ${url}`);
-// 	});
-// });

@@ -1,8 +1,7 @@
 import * as React from 'react';
-import gql from "graphql-tag";
-import { Query } from "react-apollo";
+import {query} from '../lib/graphql';
 
-const THUMBS = gql`
+const THUMBS = `
 {
   locations {
     locId
@@ -19,36 +18,55 @@ const THUMBS = gql`
 }
 `;
 
-export default ({hashtag}) => (
-	<main>
-		<Query query={THUMBS}>
-			{({ loading, error, data }) => {
-				if (loading) return "Loading...";
-				if (error) return `Error! ${error.message}`;
-				if(hashtag === '' || typeof hashtag === 'undefined')
-					return null;
+export default class extends React.Component {
+	state = {
 
-				let posts = data.locations[0].hashtags.filter(el => el.name === hashtag)[0].posts;
+	};
 
-				let thumbs = [];
-				posts.forEach(post => {
-					thumbs.push(
-						<div key={post.postId} className="thumbnail_container">
-							<a target="_blank" href={'https://www.instagram.com/p/' + post.postId}>
-								<img
-									alt={post.postId}
-									src={post.thumb}
-									className="thumbnail"
-								/>
-							</a>
-						</div>
-					)
-				});
+	componentDidMount() {
+		query(THUMBS)
+		.then(response => response.json())
+		.then(result => this.setState({data: result.data}))
+		.catch(error => this.setState({error}));
+	}
 
-				return (
-					<div>{thumbs}</div>
-				);
-			}}
-		</Query>
-	</main>
-);
+	renderPosts = (data) => {
+		const {hashtag} = this.props;
+
+		if(hashtag === '' || typeof hashtag === 'undefined')
+			return null;
+
+		let posts = data.locations[0].hashtags.filter(el => el.name === hashtag)[0].posts;
+
+		let thumbs = [];
+		posts.forEach(post => {
+			thumbs.push(
+				<div key={post.postId} className="thumbnail_container">
+					<a target="_blank" rel="noopener noreferrer" href={'https://www.instagram.com/p/' + post.postId}>
+						<img
+							alt={post.postId}
+							src={post.thumb}
+							className="thumbnail"
+						/>
+					</a>
+				</div>
+			)
+		});
+
+		return thumbs;
+	};
+
+	render() {
+		const {data, error} = this.state;
+		return (
+			<main>
+				{error
+					? error
+					: data
+						? this.renderPosts(data)
+						: "Loading..."
+				}
+			</main>
+		);
+	}
+}

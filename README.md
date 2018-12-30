@@ -1,9 +1,10 @@
+# instagram-search-vienna
+
 ## IMPORTANT
 
-This was thrown together in just a few days and I have no intention 
-of cleaning it up and making it more general purpose because it 
-already does what I need. But if you find it useful as a base (it 
-is pretty simple setup after all) - go nuts.
+This was thrown together in just a few days. I had never worked with Puppeteer 
+and GraphQL before and I have no intention of refactoring and making it 
+more general purpose because it already does what I need.
 
 ## What it does
 
@@ -17,8 +18,34 @@ So I wrote this little scraper that retrieves infos about hashtags
 being used in the city where I currently live at a slow enough rate 
 that the IG servers don't seem to care (otherwise - `429`).
 
-And it's already been great seeing what people around here who use 
-hashtags like e.g. `#franzkafka` produce. 
+And it's already been helpful for penetrating the noise compared to looking 
+at **all** recent posts for Vienna.
+
+## How to use
+
+Running `server` (or `start`) will take 1-2 hours until the API becomes 
+available depending on how many IG posts were created 
+since it was last run. A maximum of 100 scrolls on instagram's results 
+will be simulated, then it'll be merged with any possible data that was 
+already in `db.json` and served.
+
+### Development
+
+Backend and frontend run separately (so that their debug output isn't mixed).
+
+```bash
+yarn dev
+yarn server
+```
+
+### Production
+
+Required env variable: `REACT_APP_BASE_URL`
+
+```bash
+yarn build
+yarn start
+```
 
 ## How it works
 
