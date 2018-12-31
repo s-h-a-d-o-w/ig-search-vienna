@@ -41,15 +41,13 @@ export default class extends React.Component {
 		let thumbs = [];
 		posts.forEach(post => {
 			thumbs.push(
-				<div key={post.postId} className="thumbnail_container">
-					<a target="_blank" rel="noopener noreferrer" href={'https://www.instagram.com/p/' + post.postId}>
-						<img
-							alt={post.postId}
-							src={post.thumb}
-							className="thumbnail"
-						/>
-					</a>
-				</div>
+				<a target="_blank" rel="noopener noreferrer" href={'https://www.instagram.com/p/' + post.postId}>
+					<img
+						alt={post.postId}
+						src={post.thumb}
+						className="thumbnail"
+					/>
+				</a>
 			)
 		});
 
