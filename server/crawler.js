@@ -40,6 +40,7 @@ const simulateUserHesitation = async () => {
  * @returns {Promise<{location, posts}>}
  */
 const crawlIG = async(igLocation, until = 0) => {
+	const MAX_SCROLLS = 100;
 	const posts = [];
 	// Already visited posts is kept of track separately because
 	// posts without hash tags won't be stored but would be checked multiple
@@ -57,7 +58,7 @@ const crawlIG = async(igLocation, until = 0) => {
 		url: igLocation,
 	};
 
-	console.log(`Starting... (crawl until: ${new Date(until)})`);
+	console.log(`Starting... (crawl until: ${new Date(until)} - or a maximum of ${MAX_SCROLLS} scrolls)`);
 	const browser = await puppeteer.launch();
 	const page = await browser.newPage();
 	page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36');
@@ -76,7 +77,6 @@ const crawlIG = async(igLocation, until = 0) => {
 
 	// After about 15 scrolls (~100 profiles), it's:
 	// Failed to load resource: the server responded with a status of 429 ()
-	const MAX_SCROLLS = 100;
 	let numScrolls = 0;
 	while(numScrolls < MAX_SCROLLS) {
 		// Grab post ids and thumbnail URLs

@@ -24,7 +24,7 @@ const typeDefs = gql`
 	type Location {
 		locId: String
 		locName: String
-		hashtags: [Hashtag]
+		hashtags(name: String): [Hashtag]
 		lastCrawled: Date
 		url: String
 	}
@@ -59,8 +59,11 @@ const resolvers = {
 	},
 	Location: {
 		// hashtags: (parent) => locations.find(location => location.locId === parent.locId).hashtags,
-		hashtags: (parent) => {
+		hashtags: (parent, args) => {
 			let hashtags = locations.find(location => location.locId === parent.locId).hashtags;
+
+			if(args.name)
+				return [{name: args.name, postIds: hashtags[args.name]}];
 
 			let retval = [];
 			Object.keys(hashtags).forEach(hashtag => {
