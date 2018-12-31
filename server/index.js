@@ -13,16 +13,8 @@ const {crawlIG} = require('./crawler');
 
 const isDev = process.env.NODE_ENV !== 'production';
 
-const adapter = new FileSync(path.join(__dirname, '../db.json'));
-const db = low(adapter);
-db.defaults({ locations: [], posts: [] }).write();
-db.read();
-
-let locations = db.get('locations').value();
-// hashtag shape:
-// {key: [postid1, postid2, ...]}
-// let hashtags = db.get('hashtags').value();
-let posts = db.get('posts').value();
+let locations;
+let posts;
 
 // Type definitions define the "shape" of your data and specify
 // which ways the data can be fetched from the GraphQL server.
@@ -101,38 +93,7 @@ const resolvers = {
 	}),
 };
 
-let crawlers = [];
-locations.forEach((location) => crawlers.push(crawlIG(
-	location.url,
-	// For dev: Use Date.now() to not grab any new data
-	// location.lastCrawled,
-	Date.now(),
-)));
-
-if(crawlers.length === 0) {
-	console.log('Starting fresh');
-	crawlers.push(crawlIG(
-		'https://www.instagram.com/explore/locations/63134088/vienna-austria/',
-		new Date('2017-01-01').valueOf()
-	));
-}
-
-Promise.all(crawlers).then((results) => {
-	results.forEach((result) => {
-		// let currLocation = locations.find(el => el.locId === result.location.locId);
-		// if(typeof currLocation === 'undefined') {
-		// 	locations.push(result.location);
-		// 	currLocation = result.location;
-		// }
-
-		merge(locations, [result.location]);
-		merge(posts, result.posts);
-	});
-
-	db.set('locations', locations).write();
-	// db.set('hashtags', hashtags).write();
-	db.set('posts', posts).write();
-
+function createServer() {
 	const server = new ApolloServer({ typeDefs, resolvers });
 	const app = express();
 
@@ -142,7 +103,8 @@ Promise.all(crawlers).then((results) => {
 	}
 	else {
 		// ... but use bundle in production
-		app.use(express.static('../build'));
+		console.log('Using production build');
+		app.use(express.static(path.join(__dirname, '../build')));
 	}
 
 	server.applyMiddleware({app});
@@ -150,4 +112,46 @@ Promise.all(crawlers).then((results) => {
 	app.listen(4000, () => {
 		console.log(`🚀  Server ready.`);
 	});
-});
+}
+
+if(process.env.SCRAPE) {
+	const adapter = new FileSync(path.join(__dirname, '../db.json'));
+	const db = low(adapter);
+	db.defaults({ locations: [], posts: [] }).write();
+	db.read();
+
+	locations = db.get('locations').value();
+	posts = db.get('posts').value();
+
+	let crawlers = [];
+	locations.forEach((location) => crawlers.push(crawlIG(
+		location.url,
+		location.lastCrawled,
+	)));
+
+	// No db.json yet
+	if(crawlers.length === 0) {
+		console.log('No scraped data yet. Starting fresh...');
+		crawlers.push(crawlIG('https://www.instagram.com/explore/locations/63134088/vienna-austria/'));
+	}
+
+	Promise.all(crawlers).then((results) => {
+		results.forEach((result) => {
+			merge(locations, [result.location]);
+			merge(posts, result.posts);
+		});
+
+		db.set('locations', locations).write();
+		db.set('posts', posts).write();
+
+		createServer();
+	});
+}
+else {
+	let db = require('../db.json');
+
+	locations = db.locations;
+	posts = db.posts;
+
+	createServer();
+}

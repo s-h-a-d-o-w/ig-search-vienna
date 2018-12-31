@@ -1,5 +1,5 @@
 function query(queryString) {
-	return fetch(`${process.env.REACT_APP_BASE_URL}/graphql`, {
+	return fetch(`${process.env.REACT_APP_BACKEND}/graphql`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",

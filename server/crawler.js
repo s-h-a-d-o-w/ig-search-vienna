@@ -36,10 +36,10 @@ const simulateUserHesitation = async () => {
 
 /**
  * @param igLocation
- * @param until Default: 10 minutes ago.
+ * @param until Default: The beginning of time ;-) (0).
  * @returns {Promise<{location, posts}>}
  */
-const crawlIG = async(igLocation, until = Date.now() - 10 * 60 * 1000) => {
+const crawlIG = async(igLocation, until = 0) => {
 	const posts = [];
 	// Already visited posts is kept of track separately because
 	// posts without hash tags won't be stored but would be checked multiple

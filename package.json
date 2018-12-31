@@ -1,26 +1,14 @@
 {
-  "name": "insta-search",
-  "version": "0.1.0",
-  "private": true,
+  "name": "ig-search-vienna",
   "main": "./server",
-  "dependencies": {
-    "apollo-boost": "0.1.23",
-    "cross-env": "5.2.0",
-    "graphql": "14.0.2",
-    "lodash": "4.17.11",
-    "memoize-one": "5.0.0",
-    "react": "^16.7.0",
-    "react-apollo": "2.3.3",
-    "react-dom": "^16.7.0",
-    "react-scripts": "2.1.2",
-    "typename-monkey-patch": "1.0.1",
-    "webpack-bundle-analyzer": "3.0.3"
-  },
+  "license": "MIT",
   "scripts": {
-    "dev": "cross-env REACT_APP_BASE_URL=\"http://localhost:4000\" react-scripts start",
-    "start": "cross-env NODE_ENV=production yarn server",
-    "build:local": "cross-env REACT_APP_BASE_URL=\"http://localhost:4000\" react-scripts build",
-    "server": "node .",
+    "build": "react-scripts build",
+    "build:local": "cross-env REACT_APP_BACKEND=\"http://localhost:4000\" react-scripts build",
+    "start": "cross-env NODE_ENV=production node .",
+    "dev": "node .",
+    "dev:scrape": "cross-env SCRAPE=true node .",
+    "dev:cra": "cross-env BROWSER=none REACT_APP_BACKEND=\"http://localhost:4000\" react-scripts start",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -33,6 +21,15 @@
     "not ie <= 11",
     "not op_mini all"
   ],
+  "dependencies": {
+    "cross-env": "5.2.0",
+    "graphql": "14.0.2",
+    "lodash": "4.17.11",
+    "memoize-one": "5.0.0",
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0",
+    "react-scripts": "2.1.2"
+  },
   "devDependencies": {
     "apollo-server-express": "2.3.1",
     "cors": "2.8.5",

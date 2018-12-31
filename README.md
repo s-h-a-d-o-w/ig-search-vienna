@@ -23,24 +23,32 @@ at **all** recent posts for Vienna.
 
 ## How to use
 
-Running `server` (or `start`) will take 1-2 hours until the API becomes 
-available depending on how many IG posts were created 
-since it was last run. A maximum of 100 scrolls on instagram's results 
-will be simulated, then it'll be merged with any possible data that was 
-already in `db.json` and served.
+### General
+
+Run `yarn dev:scrape` at least once and let it finish (which will take 1-2 
+hours) to create `db.json`. New data will be merged into that every time 
+that you run `dev:scrape`.
+
+It'll also start the GraphQL API.
 
 ### Development
 
-Backend and frontend run separately (so that their debug output isn't mixed).
+Backend and frontend run separately (so that their terminal output isn't mixed).
+Frontend reachable at http://localhost:3000 (Backend runs on `4000`)
 
 ```bash
-yarn dev
-yarn server
+yarn dev   # or yarn dev:scrape
+yarn dev:cra
 ```
 
 ### Production
 
-Required env variable: `REACT_APP_BASE_URL`
+Required env variable: `REACT_APP_BACKEND` 
+
+Backend also serves frontend, so everything is reachable on port `3000`.
+
+Make sure you have a `db.json` you can upload, since scraping in production 
+doesn't make sense with the way this project is constructed.
 
 ```bash
 yarn build
