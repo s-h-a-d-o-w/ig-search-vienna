@@ -22,7 +22,7 @@ class Hashtags extends React.Component {
 	state = {
 		filter: '',
 		renderFilter: '',
-		threshold: 1,
+		threshold: 2,
 	};
 
 	changeFilter = (e) => {
@@ -66,7 +66,7 @@ class Hashtags extends React.Component {
 					<h3>{location.locName}</h3>
 					{location
 					.hashtags
-					.filter(el => el.numPosts > threshold)
+					.filter(el => el.numPosts >= threshold)
 					.filter(el => filter === '' || el.name.indexOf(filter) >= 0)
 					.sort((a, b) => b.numPosts - a.numPosts)
 					.map(el => <div
