@@ -1,12 +1,9 @@
-// First time GraphQL, done in ~20 hours
-
 const express = require('express');
 const cors = require('cors');
 const {merge} = require('lodash');
 const path = require('path');
-const { ApolloServer, gql } = require('apollo-server-express');
-const { GraphQLScalarType } = require('graphql');
-const { Kind } = require('graphql/language');
+const {ApolloServer} = require('apollo-server-express');
+const {GraphQLScalarType} = require('graphql');
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
 const {crawlIG} = require('./crawler');
@@ -18,37 +15,7 @@ let posts;
 
 // Type definitions define the "shape" of your data and specify
 // which ways the data can be fetched from the GraphQL server.
-const typeDefs = gql`
-  scalar Date
-
-	type Location {
-		locId: String
-		locName: String
-		hashtags(name: String): [Hashtag]
-		lastCrawled: Date
-		url: String
-	}
-	
-	type Hashtag {
-		name: String
-		postIds: [String]
-		posts: [Post]
-		numPosts: Int
-	}
-	
-	type Post {
-		postId: String
-		createdOn: Date
-		username: String
-		thumb: String
-	}
-  
-  # The "Query" type is the root of all GraphQL queries.
-  # (A "Mutation" type will be covered later on.)
-  type Query {
-    locations(locId: String): [Location]
-  }
-`;
+const typeDefs = require('./typedefs');
 
 // Resolvers define the technique for fetching the types in the
 // schema.  We'll retrieve books from the "books" array above.
@@ -58,7 +25,6 @@ const resolvers = {
 		posts: (parent) => posts.filter(post => parent.postIds.includes(post.postId)),
 	},
 	Location: {
-		// hashtags: (parent) => locations.find(location => location.locId === parent.locId).hashtags,
 		hashtags: (parent, args) => {
 			let hashtags = locations.find(location => location.locId === parent.locId).hashtags;
 

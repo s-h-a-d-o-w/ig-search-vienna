@@ -1,5 +1,3 @@
-// First time puppeteer, done in ~10-15 hours
-
 const _ = require('lodash');
 const puppeteer = require('puppeteer');
 
@@ -19,6 +17,28 @@ const closeDialog = async (page, closeButton) => {
 		throw new Error('Dialog did not disappear within 10 seconds!');
 };
 
+const scrollDown = async (page, requests) => {
+	// Wait for old stuff to be finished and new stuff to load.
+	// Unfortunately, the spinner at the bottom of the page is never removed from
+	// the DOM, so checking for that wouldn't help.
+	while(requests.length > 0) {
+		await new Promise((resolve) => setTimeout(resolve, 1000));
+	}
+
+	await simulateUserHesitation();
+	await page.evaluate(async () => {
+		window.scrollBy(0, 2000);
+	});
+
+	while(requests.length > 0) {
+		await new Promise((resolve) => setTimeout(resolve, 1000));
+	}
+};
+
+const simulateUserHesitation = async () => {
+	await new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 3000));
+};
+
 const waitUntilLoaded = async (hndDialog) => {
 	// Wait for loading spinner to be removed
 	let spinner = await hndDialog.$('svg');
@@ -28,10 +48,6 @@ const waitUntilLoaded = async (hndDialog) => {
 		spinner = await hndDialog.$('svg');
 		retries--;
 	}
-};
-
-const simulateUserHesitation = async () => {
-	await new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 3000));
 };
 
 /**
@@ -58,6 +74,7 @@ const crawlIG = async(igLocation, until = 0) => {
 		url: igLocation,
 	};
 
+	// Puppeteer initialization
 	console.log(`Starting... (crawl until: ${new Date(until)} - or a maximum of ${MAX_SCROLLS} scrolls)`);
 	const browser = await puppeteer.launch();
 	const page = await browser.newPage();
@@ -75,27 +92,28 @@ const crawlIG = async(igLocation, until = 0) => {
 	page.on('requestfailed', request => _.remove(requests, el => el === request));
 	page.on('requestfinished', request => _.remove(requests, el => el === request));
 
-	// After about 15 scrolls (~100 profiles), it's:
-	// Failed to load resource: the server responded with a status of 429 ()
 	let numScrolls = 0;
 	while(numScrolls < MAX_SCROLLS) {
-		// Grab post ids and thumbnail URLs
 		// brittle: Select only links in "Most recent" area of results
 		let linkHandles = await page.$$('article > h2 + div a[href^="/p/"]');
 		console.log('Number of posts on page: ', linkHandles.length);
+
 		for(let i = 0; i < linkHandles.length; i++) {
 			let linkHandle = linkHandles[i];
 
+			// Get Post ID
 			let postId = (await page.evaluate(link => link.href, linkHandle)).match(/\/p\/(.*)\/$/)[1];
 			if(visited.includes(postId)) {
 				console.log(`${i} | Already crawled postId ${postId}`);
 				continue;
 			}
 
+			// Get thumbnail info
 			let img = await linkHandle.$('img');
 			let thumb = await page.evaluate(img => img.src.trim(), img);
 			console.log(`${i} | Grabbing info for postId ${postId}`);
 
+			// Open dialog that contains post details
 			try {
 				await simulateUserHesitation();
 				await linkHandle.click();
@@ -113,7 +131,7 @@ const crawlIG = async(igLocation, until = 0) => {
 			await waitUntilLoaded(hndDialog);
 			let closeButton = await hndDialog.$(':scope > button');
 
-			// Get timestamp
+			// Get created on timestamp
 			let hndTime = await hndDialog.$('time');
 			if(hndTime === null) {
 				await closeDialog(page, closeButton);
@@ -123,9 +141,8 @@ const crawlIG = async(igLocation, until = 0) => {
 			let createdOn = await page.evaluate(async (time) => (
 				(new Date(time.getAttribute('datetime'))).valueOf()
 			), hndTime);
-			// console.log('createdOn', createdOn);
 
-			// We've reached the oldest post we want
+			// Have we reached the oldest post we want?
 			if(createdOn <= until) {
 				console.log(`Finished by reaching postId ${postId}, created on ${new Date(createdOn)}`);
 				return {location, posts};
@@ -173,45 +190,27 @@ const crawlIG = async(igLocation, until = 0) => {
 			await closeDialog(page, closeButton);
 
 			// Append collected data
-			let post = {
+			posts.push({
 				postId,
 				thumb,
 				createdOn,
 				username,
-			};
-			posts.push(post);
+			});
 
 			hashtags.forEach(hashtag => {
 				if(!location.hashtags.hasOwnProperty(hashtag)) {
 					location.hashtags[hashtag] = [];
 				}
 
-				location.hashtags[hashtag].push(post.postId);
+				location.hashtags[hashtag].push(postId);
 			});
 		}
 
-		// Wait for old stuff to be finished and new stuff to load.
-		// Unfortunately, the spinner at the bottom of the page is never removed from
-		// the DOM, so checking for that wouldn't help.
-		while(requests.length > 0) {
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-		}
-
-		await simulateUserHesitation();
-		await page.evaluate(async () => {
-			window.scrollBy(0, 2000);
-		});
-
-		while(requests.length > 0) {
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-		}
-
+		await scrollDown(page, requests);
 		numScrolls++;
 	}
 
-
 	await browser.close();
-
 	return {location, posts};
 };
 
