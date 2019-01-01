@@ -1,4 +1,4 @@
-# instagram-search-vienna
+# ig-search-vienna
 
 ## IMPORTANT
 
@@ -8,15 +8,15 @@ more general purpose because it already does what I need.
 
 ## What it does
 
-All I wanted to do was find interesting posts from people where 
+All I wanted to do was find interesting instagram posts from people where 
 I live.
-But instagram's laughable search functionality makes that impossible.
+But IG's laughable search functionality makes that impossible.
 And their [APIs](https://www.instagram.com/developer/) ~~suck~~ are 
 very restrictive "in the interest of privacy".
 
 So I wrote this little scraper that retrieves infos about hashtags 
-being used in the city where I currently live at a slow enough rate 
-that the IG servers don't seem to care (otherwise - `429`).
+being used in posts that have a geo tag for Vienna at a slow enough rate 
+that the IG servers don't seem to care (otherwise - Response `429`).
 
 And it's already been helpful for penetrating the noise compared to looking 
 at **all** recent posts for Vienna.
@@ -25,11 +25,11 @@ at **all** recent posts for Vienna.
 
 ### General
 
-Run `yarn dev:scrape` at least once and let it finish (which will take 1-2 
-hours) to create `db.json`. New data will be merged into that every time 
-that you run `dev:scrape`.
+Run `yarn dev:scrape` at least once and let it finish (which will take **1-2 
+hours**) to create `db.json`. New data will be merged into that every time 
+that `dev:scrape` is run.
 
-It'll also start the GraphQL API.
+It'll also start the GraphQL API once scraping is done.
 
 ### Development
 
@@ -54,19 +54,3 @@ doesn't make sense with the way this project is constructed.
 yarn build
 yarn start
 ```
-
-## How it works
-
-- Puppeteer scrapes the info at a really low speed (initial scraping 
-will take **~2 hours**)
-- The resulting data is stored in memory
-- The data is also mirrored in a `lowdb` file db so that subsequent 
-startups only take seconds. (If db.json isn't removed between startups and the timestamp to 
-"scrape until" in `server/index.js` is set to `Date.now()`)
-- The backend serves this data through a GraphQL API
-- Frontend... very simple, nothing to say. (Although I want to note 
-that this is first time I found a good use case for `create-react-app`.
-So far, I've only used it for tests. Usually, I either set up things from 
-scratch or use Next.js for anything that's supposed to be usable. But from 
-scratch would've taken too long and Next.js... SSR/TS and GraphQL... no
-time for that either.)
