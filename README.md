@@ -8,13 +8,11 @@ more general purpose because it already does what I need.
 
 ## What it does
 
-All I wanted to do was find interesting instagram posts from people where 
+What I wanted to do was find interesting instagram posts from people where 
 I live.
-But IG's laughable search functionality makes that impossible.
-And their [APIs](https://www.instagram.com/developer/) ~~suck~~ are 
-very restrictive "in the interest of privacy".
 
-So I wrote this little scraper that retrieves infos about hashtags 
+Since IG's search functionality is insufficient for that, I wrote this little 
+scraper that retrieves infos about hashtags 
 being used in posts that have a geo tag for Vienna at a slow enough rate 
 that the IG servers don't seem to care (otherwise - Response `429`).
 
