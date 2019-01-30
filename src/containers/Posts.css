@@ -1,0 +1,11 @@
+main {
+	text-align: center;
+}
+
+.banner {
+	display: inline-block;
+	background-color: red;
+	padding: 10px 100px;
+	text-align: center;
+	font-weight: bold;
+}
