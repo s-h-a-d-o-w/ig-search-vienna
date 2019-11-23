@@ -1,5 +1,10 @@
 # ig-search-vienna
 
+## NO LONGER FUNCTIONAL
+
+- Instagram removed the functionality to explore locations (no more scraping new data).
+- Trying to load images through the app now results in `403`.
+
 ## IMPORTANT
 
 This was thrown together in just a few days. I had never worked with Puppeteer
