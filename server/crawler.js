@@ -43,6 +43,7 @@ const waitUntilLoaded = async (hndDialog) => {
 	// Wait for loading spinner to be removed
 	let spinner = await hndDialog.$('svg');
 	let retries = 10;
+
 	while(spinner !== null && retries > 0) {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 		spinner = await hndDialog.$('svg');
@@ -56,7 +57,7 @@ const waitUntilLoaded = async (hndDialog) => {
  * @returns {Promise<{location, posts}>}
  */
 const crawlIG = async(igLocation, until = 0) => {
-	const MAX_SCROLLS = 100;
+	const MAX_SCROLLS = 1000;
 	const posts = [];
 	// Already visited posts is kept of track separately because
 	// posts without hash tags won't be stored but would be checked multiple
@@ -115,18 +116,20 @@ const crawlIG = async(igLocation, until = 0) => {
 
 			// Open dialog that contains post details
 			try {
-				await simulateUserHesitation();
 				await linkHandle.click();
+				await simulateUserHesitation();
 			}
 			catch(err) {
 				console.log('Node probably was detached from document in the meantime');
 				continue;
 			}
 
-			let hndDialog = await page.$('body > div:not([class]) > div');
+			let hndDialog = await page.$('div[role="dialog"]');
 			// Sometimes, the dialog simply won't open
-			if(hndDialog === null)
+			if(hndDialog === null) {
+				console.log("Dialog didn't open");
 				continue;
+			}
 
 			await waitUntilLoaded(hndDialog);
 			let closeButton = await hndDialog.$(':scope > button');
@@ -134,6 +137,7 @@ const crawlIG = async(igLocation, until = 0) => {
 			// Get created on timestamp
 			let hndTime = await hndDialog.$('time');
 			if(hndTime === null) {
+				console.log("Could not get time stamp");
 				await closeDialog(page, closeButton);
 				continue;
 			}
@@ -166,6 +170,7 @@ const crawlIG = async(igLocation, until = 0) => {
 
 			// Some posts don't have a description or comments
 			if(hndItem === null) {
+				console.log('This post contains no info');
 				await closeDialog(page, closeButton);
 				continue;
 			}
@@ -175,21 +180,29 @@ const crawlIG = async(igLocation, until = 0) => {
 			), hndItem);
 			// No description by author, only comments
 			if(!itemText.startsWith(username)) {
+				console.log('No description by author available');
 				await closeDialog(page, closeButton);
 				continue;
 			}
 
 			let hashtags = itemText.match(/(#[^#|^\s]*)/g);
 			if(hashtags === null) {
+				console.log('No hash tags');
 				await closeDialog(page, closeButton);
 				continue;
 			}
 
 
-			await simulateUserHesitation();
 			await closeDialog(page, closeButton);
+			await simulateUserHesitation();
 
 			// Append collected data
+			console.log('Appending', JSON.stringify({
+				postId,
+				thumb,
+				createdOn,
+				username,
+			}, null, 2));
 			posts.push({
 				postId,
 				thumb,
