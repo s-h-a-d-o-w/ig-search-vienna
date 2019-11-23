@@ -24,7 +24,7 @@
   "dependencies": {
     "cross-env": "5.2.0",
     "graphql": "14.0.2",
-    "lodash": "4.17.11",
+    "lodash": "4.17.13",
     "memoize-one": "5.0.0",
     "react": "^16.7.0",
     "react-dom": "^16.7.0",
