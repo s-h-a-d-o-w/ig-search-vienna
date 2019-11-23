@@ -117,7 +117,7 @@ if(process.env.SCRAPE) {
 	});
 }
 else {
-	let db = require('../db.json');
+	let db = require(path.join(__dirname, '../db.json'));
 
 	locations = db.locations;
 	posts = db.posts;

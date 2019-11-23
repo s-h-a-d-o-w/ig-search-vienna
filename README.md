@@ -41,13 +41,11 @@ yarn dev:cra
 
 ### Production
 
-**If deployed using now, remember to temporarily comment out db.json in .gitignore!**
-
 Required env variable: `REACT_APP_BACKEND`
 
 Backend also serves frontend, so everything is reachable on port `3000`.
 
-Make sure you have a `db.json` you can upload, since scraping in production
+Make sure there's a usable `db.json` in root, since scraping in production
 doesn't make sense with the way this project is constructed.
 
 ```bash
